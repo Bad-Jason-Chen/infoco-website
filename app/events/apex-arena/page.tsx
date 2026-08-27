@@ -1,0 +1,8 @@
+import type { Metadata } from 'next';
+import { ShareButton } from '../../components/Interactive';
+import { Shell } from '../../components/SiteChrome';
+
+export const metadata: Metadata = { title: 'Apex Arena · 活动', description: 'InfoCo 48 小时 Hackathon 往期企划。', openGraph: { title: 'Apex Arena — InfoCo', description: '在有限时间里组队、定义问题、做出原型并完成发布。', images: [] }, twitter: { card: 'summary', title: 'Apex Arena — InfoCo', description: 'InfoCo 48 小时 Hackathon 往期企划。', images: [] } };
+export default function ApexArenaPage() {
+  return <Shell><main id="top"><section className="detail-hero violet"><div className="detail-breadcrumb"><a href="/events">活动 EVENTS</a><span>/</span><span>APEX ARENA</span></div><span className="status-pill">ARCHIVE · 往期企划</span><h1>Apex<br />Arena.</h1><p>48 小时。组建一支小队，定义一个真实问题，在倒计时归零前把灵感做成可以演示的原型。</p><div className="detail-actions"><ShareButton /><a className="btn btn-ghost" href="/projects">查看项目成果 ↗</a></div></section><section className="detail-info section-pad"><aside><div><span>DATE</span><strong>往期资料整理中</strong></div><div><span>PLACE</span><strong>校内</strong></div><div><span>FORMAT</span><strong>TEAM · 48H</strong></div><div><span>PRIZE</span><strong>活动规则为准</strong></div></aside><article><span className="section-index">ABOUT THIS EVENT</span><h2>从问题，到原型。</h2><p>Apex Arena 是 InfoCo 的极限协作实践企划。参与者会在时间盒内完成组队、选题、设计、开发与路演，目标不是做出“完整产品”，而是证明一个想法值得继续。</p><h3>参与方式</h3><p>下一届开放后，报名入口会连接学校系统或成熟表单工具。本页不会自行收集个人信息。详细时间、负责人和奖品规则以届时公开通知为准。</p><div className="detail-callout"><span>EVENT STATUS</span><strong>本企划当前不开放报名</strong><p>页面保留为往期记录与下一届预告入口。</p></div></article></section></main></Shell>;
+}
