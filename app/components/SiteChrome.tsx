@@ -1,7 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export const navItems = [
   ['首页', 'Home', '/'],
@@ -14,18 +15,17 @@ export const navItems = [
 
 export function Logo() {
   return (
-    <a className="brand" href="/" aria-label="InfoCo 首页">
+    <Link className="brand" href="/" aria-label="InfoCo 首页">
       <span className="brand-mark" aria-hidden="true"><i /><i /><i /><i /></span>
       <span>InfoCo</span>
-    </a>
+    </Link>
   );
 }
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => setOpen(false), [pathname]);
+  const [openPath, setOpenPath] = useState<string | null>(null);
+  const open = openPath === pathname;
 
   return (
     <header className="site-header">
@@ -33,16 +33,16 @@ export function SiteHeader() {
       <nav className="desktop-nav" aria-label="主导航">
         {navItems.map(([cn, en, href]) => {
           const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
-          return <a href={href} key={href} className={active ? 'active' : ''}><span>{cn}</span><small>{en}</small></a>;
+          return <Link href={href} key={href} className={active ? 'active' : ''}><span>{cn}</span><small>{en}</small></Link>;
         })}
       </nav>
-      <a className="header-join" href="/join">JOIN <span aria-hidden="true">↗</span></a>
-      <button className={`menu-toggle ${open ? 'open' : ''}`} onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? '关闭菜单' : '打开菜单'}>
+      <Link className="header-join" href="/join">JOIN <span aria-hidden="true">↗</span></Link>
+      <button className={`menu-toggle ${open ? 'open' : ''}`} onClick={() => setOpenPath(open ? null : pathname)} aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? '关闭菜单' : '打开菜单'}>
         <span /><span />
       </button>
       <nav id="mobile-nav" className={`mobile-nav ${open ? 'open' : ''}`} aria-label="移动端主导航">
         {navItems.map(([cn, en, href], index) => (
-          <a href={href} key={href}><b>0{index + 1}</b><span>{cn}<small>{en}</small></span><i>↗</i></a>
+          <Link href={href} key={href} onClick={() => setOpenPath(null)}><b>0{index + 1}</b><span>{cn}<small>{en}</small></span><i>↗</i></Link>
         ))}
       </nav>
     </header>
@@ -55,7 +55,7 @@ export function SiteFooter() {
       <div className="footer-main">
         <div><Logo /><p>把好奇心编译成作品。</p></div>
         <div className="footer-nav">
-          {navItems.slice(1).map(([cn, , href]) => <a href={href} key={href}>{cn}</a>)}
+          {navItems.slice(1).map(([cn, , href]) => <Link href={href} key={href}>{cn}</Link>)}
         </div>
         <div className="footer-contact">
           <span>PUBLIC CHANNEL</span>

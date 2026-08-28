@@ -1,4 +1,4 @@
-import { projects } from './content';
+import Image from 'next/image';
 import { Shell } from './components/SiteChrome';
 
 const tracks = [
@@ -6,6 +6,33 @@ const tracks = [
   ['02', '创意开发', '把游戏、网站与工具从想法变成真正可用的作品。', 'MAKE'],
   ['03', '协作实践', '在 Hackathon 与项目组里学习沟通、分工和发布。', '48H'],
   ['04', '校园科技', '让技术走出屏幕，成为校园文化的一部分。', 'LIVE'],
+];
+
+const conceptProjects = [
+  {
+    name: 'CAMPUS INTELLIGENCE MESH',
+    status: '概念中',
+    summary: '校园智能协作网络，将活动、学习资源和项目需求组织成可组合的智能服务。',
+    tags: ['AI Orchestration', 'Campus Service', 'Concept'],
+    tone: 'acid',
+    icon: 'C//M',
+  },
+  {
+    name: 'SIGNAL FOUNDRY',
+    status: '规划中',
+    summary: '面向社团项目的自动化构建与发布工具链，让创意更快变成可分享的产品。',
+    tags: ['Automation', 'Toolchain', 'Planning'],
+    tone: 'blue',
+    icon: 'S//F',
+  },
+  {
+    name: 'NEON COMMONS',
+    status: '探索中',
+    summary: '结合计算机视觉、实时渲染和互动媒体的校园数字体验实验。',
+    tags: ['Computer Vision', 'Realtime', 'Exploration'],
+    tone: 'orange',
+    icon: 'N//C',
+  },
 ];
 
 export default function Home() {
@@ -30,7 +57,7 @@ export default function Home() {
             </div>
             <div className="console-foot"><span>04 CORE TRACKS</span><span>05 DIVISIONS</span><span>01 GAME ONLINE</span></div>
           </div>
-          <a className="signal-card" href="/join"><span className="signal-label">NOW / 当前信号</span><span className="signal-title">新学期招新状态</span><span className="signal-desc">尚未开放 · 关注公开渠道获取通知</span><span className="signal-arrow">→</span></a>
+          <a className="signal-card" href="#recruitment"><span className="signal-label">NEXT / 下一信号</span><span className="signal-title">9 月 2 日新成员开放日</span><span className="signal-desc">09:00–20:00 · 学术类社团区 8 号展位</span><span className="signal-arrow">↓</span></a>
         </section>
 
         <div className="ticker" aria-label="InfoCo 关键词"><div>LEARN_01&nbsp;&nbsp;✦&nbsp;&nbsp;MAKE_02&nbsp;&nbsp;✦&nbsp;&nbsp;SHIP_03&nbsp;&nbsp;✦&nbsp;&nbsp;SHARE_04&nbsp;&nbsp;✦&nbsp;&nbsp;CODE THE CULTURE&nbsp;&nbsp;✦&nbsp;&nbsp;LEARN_01&nbsp;&nbsp;✦&nbsp;&nbsp;MAKE_02&nbsp;&nbsp;✦&nbsp;&nbsp;SHIP_03&nbsp;&nbsp;✦&nbsp;&nbsp;SHARE_04</div></div>
@@ -41,15 +68,15 @@ export default function Home() {
           <div className="stats-grid"><div><strong>04</strong><span>CORE TRACKS<br />核心方向</span></div><div><strong>05</strong><span>DIVISIONS<br />协作部门</span></div><div><strong>01</strong><span>GAME ONLINE<br />在线游戏</span></div><div><strong>∞</strong><span>IDEAS WELCOME<br />创意容量</span></div></div>
         </section>
 
-        <section className="home-event section-pad">
+        <section className="home-event section-pad" id="recruitment">
           <div className="section-index light">02 / CURRENT SIGNAL</div>
-          <div className="event-feature-copy"><span className="status-pill">● 招新尚未开放</span><h2>新成员开放日</h2><p>下一次招新开放后，我们会在这里公布时间、地点、加入方向和报名入口。在此之前，先来看看我们正在做什么。</p><div className="feature-meta"><div><span>DATE</span><strong>待公布</strong></div><div><span>LOCATION</span><strong>校内 · 待公布</strong></div><div><span>ENTRY</span><strong>免费参与</strong></div></div><a className="btn btn-dark" href="/events">打开活动雷达 <span>→</span></a></div>
-          <div className="event-feature-art" aria-hidden="true"><div className="radar"><i /><i /><i /><span>INFOCO<br />OPEN<br />HOUSE</span></div><b>HELLO<br />WORLD!</b></div>
+          <div className="event-feature-copy"><span className="status-pill">● 9.2 限时开放 / SCHEDULED</span><h2>新成员开放日</h2><p>来 8 号展位认识 InfoCo、聊聊你想做的项目，也可以现场挑战“快问快答”。游戏仅在活动当天 09:00–20:00 开放，兑奖由现场社员协助完成。</p><div className="feature-meta"><div><span>DATE / TIME</span><strong>2026.09.02 · 09:00–20:00</strong></div><div><span>LOCATION</span><strong>西交利物浦大学南校区<br />学术类社团区 8 号展位</strong></div><div><span>ENTRY</span><strong>现场免费参与</strong></div></div><div className="event-actions"><a className="btn btn-dark" href="/games/quick-quiz">进入限时挑战 <span>→</span></a><a className="map-link" href="/recruitment/academic-clubs-map.png" target="_blank" rel="noreferrer">查看完整地图 ↗</a></div></div>
+          <figure className="event-map"><a href="/recruitment/academic-clubs-map.png" target="_blank" rel="noreferrer" aria-label="打开学术类社团完整地图"><Image src="/recruitment/academic-clubs-map.png" width={2560} height={1499} sizes="(max-width: 1080px) 100vw, 55vw" alt="学校学术类社团地图，InfoCo 计算机科学类编程社团位于 8 号展位" /></a><figcaption><span>ACADEMIC CLUBS MAP</span><strong>INFOCO · BOOTH 08</strong><small>点击查看学校宣传地图原图</small></figcaption></figure>
         </section>
 
         <section className="section-pad project-showcase">
-          <div className="section-heading"><div><span className="section-index">03 / SELECTED OUTPUT</span><h2>项目不是作业。<br />它们会被<em>真正发布。</em></h2></div><a className="text-link" href="/projects">查看全部项目 ↗</a></div>
-          <div className="project-grid home-project-grid">{projects.map((project, index) => <a className={`project-card ${project.tone}`} href={project.href || '/projects'} key={project.slug}><div className="project-card-top"><span>0{index + 1}</span><span className={`status-tag status-${project.status}`}>{project.status}</span></div><div className="project-icon" aria-hidden="true">{project.slug === 'infoco-exe' ? '⚡' : project.slug === 'infoco-club' ? 'www' : 'G//P'}</div><span className="card-kicker">{project.kind}</span><h3>{project.name}</h3><p>{project.summary}</p><div className="tag-row">{project.tags.map(tag => <span key={tag}>{tag}</span>)}</div><div className="card-link">OPEN CASE ↗</div></a>)}</div>
+          <div className="section-heading"><div><span className="section-index">03 / FUTURE CONCEPTS</span><h2>先留下一些信号。<br />作品完成后再<em>正式上线。</em></h2></div><p>以下是方向性概念，不代表已经完成或发布；后续会替换为社团真实项目与游戏。</p></div>
+          <div className="project-grid home-project-grid">{conceptProjects.map((project, index) => <article className={`project-card concept-card ${project.tone}`} key={project.name}><div className="project-card-top"><span>0{index + 1}</span><span className={`status-tag status-${project.status}`}>{project.status}</span></div><div className="project-icon" aria-hidden="true">{project.icon}</div><span className="card-kicker">FUTURE CONCEPT / 方向占位</span><h3>{project.name}</h3><p>{project.summary}</p><div className="tag-row">{project.tags.map(tag => <span key={tag}>{tag}</span>)}</div><div className="card-link">CONCEPT ONLY / 尚未发布</div></article>)}</div>
         </section>
 
         <section className="track-section section-pad">

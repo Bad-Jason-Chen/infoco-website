@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InfoCo 快问快答</title>
+<style>
+:root{--bg:#0a0a1a;--card:#111128;--accent:#00e5ff;--accent2:#7c4dff;--correct:#00e676;--wrong:#ff1744;--text:#e0e0e0;--muted:#6b7280;--glow:0 0 15px rgba(0,229,255,0.4);--glow2:0 0 15px rgba(124,77,255,0.4)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden;position:relative}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 49px,rgba(0,229,255,0.03) 49px,rgba(0,229,255,0.03) 50px),repeating-linear-gradient(90deg,transparent,transparent 49px,rgba(0,229,255,0.03) 49px,rgba(0,229,255,0.03) 50px);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(0,229,255,0.08) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(124,77,255,0.06) 0%,transparent 50%);animation:bgShift 12s ease-in-out infinite alternate;pointer-events:none;z-index:0}
+@keyframes bgShift{0%{transform:translate(0,0) scale(1)}100%{transform:translate(-30px,20px) scale(1.1)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes breathe{0%,100%{opacity:1;text-shadow:0 0 8px rgba(239,68,68,0.6)}50%{opacity:0.4;text-shadow:0 0 2px rgba(239,68,68,0.2)}}
+@keyframes pop{0%{transform:scale(0.8);opacity:0}50%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(0,229,255,0.3),0 0 40px rgba(124,77,255,0.15)}50%{box-shadow:0 0 35px rgba(0,229,255,0.6),0 0 70px rgba(124,77,255,0.35)}}
+@keyframes borderGlow{0%{border-color:rgba(0,229,255,0.4);box-shadow:0 0 15px rgba(0,229,255,0.3),inset 0 0 15px rgba(0,229,255,0.05)}50%{border-color:rgba(124,77,255,0.6);box-shadow:0 0 20px rgba(124,77,255,0.4),inset 0 0 15px rgba(124,77,255,0.08)}100%{border-color:rgba(0,229,255,0.4);box-shadow:0 0 15px rgba(0,229,255,0.3),inset 0 0 15px rgba(0,229,255,0.05)}}
+.page{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;z-index:1;transition:opacity 0.4s,transform 0.4s}
+.page.hidden{opacity:0;transform:scale(0.95);pointer-events:none}
+.start-page .logo{font-size:64px;margin-bottom:8px;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(0,229,255,0.5))}
+.start-page h1{font-size:28px;font-weight:800;letter-spacing:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;margin-bottom:12px}
+.start-page .subtitle{color:var(--muted);font-size:14px;margin-bottom:10px}
+.btn-lang{position:absolute;top:16px;right:16px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--accent);background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:20px;cursor:pointer;transition:all 0.2s;z-index:2}
+.btn-lang:hover{background:rgba(0,229,255,0.15);box-shadow:0 0 10px rgba(0,229,255,0.2)}
+.info-card{background:rgba(12,12,35,0.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(0,229,255,0.18);border-radius:16px;padding:22px 26px;margin:12px 0 24px;max-width:520px;width:100%;box-shadow:0 0 18px rgba(0,229,255,0.12),inset 0 1px 0 rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:18px}
+.info-section-title{font-size:15px;font-weight:700;color:#e0e8ff;margin-bottom:10px;letter-spacing:1px}
+.info-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.info-list li{font-size:14px;color:#b8bcd0;line-height:1.7;display:flex;align-items:flex-start;gap:8px}
+.info-list .icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.hl{color:var(--accent);font-weight:700;font-size:15px}
+.hl-correct{color:var(--correct);font-weight:700;font-size:15px}
+.hl-wrong{color:var(--wrong);font-weight:700;font-size:15px}
+.info-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,0.25),rgba(124,77,255,0.25),transparent);margin:0 4px}
+.prize-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+.prize-list li{display:flex;align-items:center;gap:8px;font-size:13.5px;line-height:1.5;padding:8px 12px;border-radius:10px;border:1px solid transparent;transition:all 0.2s}
+.prize-list .medal{font-size:18px;flex-shrink:0}
+.prize-range{color:#8a8fa8;font-size:12px;min-width:80px;flex-shrink:0}
+.prize-label{color:#c0c4d8;font-weight:600;min-width:72px;flex-shrink:0}
+.prize-item{color:var(--accent);font-weight:700;font-size:14px;text-shadow:0 0 8px rgba(0,229,255,0.3)}
+.prize-bronze{background:rgba(205,127,50,0.06);border-color:rgba(205,127,50,0.2)}
+.prize-silver{background:rgba(192,192,210,0.06);border-color:rgba(192,192,210,0.22)}
+.prize-gold{background:rgba(255,215,0,0.07);border-color:rgba(255,215,0,0.3);box-shadow:0 0 12px rgba(255,215,0,0.08)}
+.prize-gold .prize-item{background:linear-gradient(90deg,#00e5ff,#7c4dff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:15px;text-shadow:none;filter:drop-shadow(0 0 6px rgba(0,229,255,0.4))}
+.btn-start{padding:14px 48px;font-size:18px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:50px;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 0 20px rgba(0,229,255,0.3),0 0 40px rgba(124,77,255,0.15);transition:transform 0.2s,box-shadow 0.2s;animation:pulse 2s ease-in-out infinite}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(0,229,255,0.5),0 0 60px rgba(124,77,255,0.25)}
+.btn-start::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);background-size:200% 100%;animation:shimmer 2.5s infinite}
+.quiz-page{justify-content:center;padding-top:0}
+.quiz-info{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:600px;margin-bottom:8px}
+.quiz-info .progress-text{font-size:15px;color:var(--muted)}
+.quiz-info .progress-text span{color:var(--accent);font-weight:700}
+.quiz-info .timer-text{font-size:24px;font-weight:800;color:var(--accent);min-width:55px;text-align:right}
+.quiz-info .timer-text.warning{color:#ef4444;animation:breathe 0.8s ease-in-out infinite}
+.progress-bar{width:100%;max-width:600px;height:8px;background:rgba(255,255,255,0.08);border-radius:4px;margin-bottom:20px;overflow:hidden}
+.progress-bar .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width 0.3s}
+.question-card{background:rgba(17,17,40,0.65);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(0,229,255,0.2);border-radius:16px;padding:28px 24px;max-width:600px;width:100%;box-shadow:var(--glow);animation:pop 0.35s ease-out}
+.question-card .q-text{font-size:17px;font-weight:600;line-height:1.6;margin-bottom:20px;min-height:54px}
+.options{display:flex;flex-direction:column;gap:10px}
+.option-btn{padding:13px 16px;font-size:15px;color:var(--text);background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;cursor:pointer;text-align:left;transition:all 0.2s;position:relative}
+.option-btn:hover:not(.disabled){border-color:var(--accent);background:rgba(0,229,255,0.08);box-shadow:0 0 12px rgba(0,229,255,0.2);transform:translateY(-2px)}
+.option-btn.correct{border-color:var(--correct);background:rgba(0,230,118,0.15);color:var(--correct);box-shadow:0 0 12px rgba(0,230,118,0.3)}
+.option-btn.wrong{border-color:var(--wrong);background:rgba(255,23,68,0.15);color:var(--wrong);box-shadow:0 0 12px rgba(255,23,68,0.3);animation:shake 0.4s}
+.option-btn.disabled{pointer-events:none;opacity:0.6}
+.option-btn .idx{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%;background:rgba(255,255,255,0.08);font-size:12px;font-weight:700;margin-right:10px;flex-shrink:0}
+.btn-skip{margin-top:16px;padding:10px 28px;font-size:14px;color:#9ca3af;background:transparent;border:1px solid rgba(255,255,255,0.18);border-radius:8px;cursor:pointer;transition:all 0.2s}
+.btn-skip:hover{border-color:var(--accent);color:var(--text);box-shadow:0 0 10px rgba(0,229,255,0.15)}
+.result-page{text-align:center}
+.result-page .result-icon{font-size:88px;margin-bottom:12px;animation:float 2.5s ease-in-out infinite;filter:drop-shadow(0 0 25px rgba(0,229,255,0.5))}
+.result-page .result-title{font-size:28px;font-weight:800;margin-bottom:8px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none}
+.result-page .result-score{font-size:72px;font-weight:900;color:var(--accent);margin:12px 0;text-shadow:0 0 30px rgba(0,229,255,0.6),0 0 60px rgba(0,229,255,0.3),0 0 90px rgba(124,77,255,0.2)}
+.result-page .result-detail{font-size:16px;color:#9ca3af;margin-bottom:6px}
+.result-page .result-rank{font-size:18px;font-weight:700;color:#e0e0ff;margin:16px 0 30px;padding:14px 28px;background:linear-gradient(135deg,rgba(0,229,255,0.08),rgba(124,77,255,0.12));border:2px solid rgba(0,229,255,0.4);border-radius:14px;box-shadow:0 0 20px rgba(0,229,255,0.3),inset 0 0 15px rgba(0,229,255,0.05);display:inline-block;animation:borderGlow 3s ease-in-out infinite}
+.btn-replay{padding:12px 40px;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:50px;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 0 20px rgba(124,77,255,0.3);transition:transform 0.2s,box-shadow 0.2s}
+.btn-replay:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(124,77,255,0.5)}
+.btn-replay::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);background-size:200% 100%;animation:shimmer 2.5s infinite}
+:root{--bg:#070806;--card:#12150f;--accent:#c7ff4a;--accent2:#87a9ff;--correct:#c7ff4a;--wrong:#ff7657;--text:#f4f1e8;--muted:#8b9084;--glow:0 0 0 1px rgba(199,255,74,.35);--glow2:0 0 0 1px rgba(135,169,255,.35)}
+body{font-family:Inter,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)}
+body::before{background:repeating-linear-gradient(0deg,transparent,transparent 47px,rgba(199,255,74,.045) 48px),repeating-linear-gradient(90deg,transparent,transparent 47px,rgba(199,255,74,.045) 48px)}
+body::after{background:radial-gradient(circle at 15% 18%,rgba(199,255,74,.09),transparent 32%),radial-gradient(circle at 82% 78%,rgba(135,169,255,.1),transparent 34%)}
+.page{padding:24px;overflow-y:auto}.start-page{justify-content:flex-start;padding-top:54px;padding-bottom:54px}
+.start-page .logo{font-size:58px;filter:none}.start-page h1{font-family:Inter,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-size:clamp(28px,5vw,48px);letter-spacing:-.05em;background:none;-webkit-text-fill-color:var(--text)}
+.start-page .subtitle{letter-spacing:.12em;text-transform:uppercase}.btn-lang,.btn-settings{position:fixed;top:16px;border:1px solid rgba(244,241,232,.25);border-radius:0;color:var(--text);background:#12150f;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;z-index:6}
+.btn-lang{right:16px}.btn-settings{right:104px;padding:6px 13px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-lang:hover,.btn-settings:hover{color:var(--bg);background:var(--accent);box-shadow:none}
+.info-card{border:1px solid rgba(244,241,232,.2);border-radius:0;background:rgba(18,21,15,.94);box-shadow:none;backdrop-filter:none}
+.info-section-title{color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em}.info-list li{color:#bdc2b7}.info-divider{background:rgba(244,241,232,.2)}
+.prize-list li{border-radius:0}.prize-gold .prize-item{background:none;-webkit-text-fill-color:var(--accent);filter:none}.btn-start,.btn-replay{border:1px solid var(--accent);border-radius:0;color:var(--bg);background:var(--accent);box-shadow:none;animation:none;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.btn-start:hover,.btn-replay:hover{box-shadow:8px 8px 0 var(--accent2);transform:translate(-3px,-3px)}
+.question-card{border:1px solid rgba(244,241,232,.22);border-radius:0;background:#12150f;box-shadow:none;backdrop-filter:none}.progress-bar,.progress-bar .fill,.option-btn,.btn-skip,.result-page .result-rank{border-radius:0}.progress-bar .fill{background:var(--accent)}.option-btn:hover:not(.disabled){border-color:var(--accent);background:rgba(199,255,74,.08);box-shadow:none}.result-page .result-title{background:none;-webkit-text-fill-color:var(--text)}.result-page .result-score{color:var(--accent);text-shadow:none}.result-page .result-rank{border-color:var(--accent);background:#12150f;box-shadow:none;animation:none}
+.settings-backdrop{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:rgba(7,8,6,.82);z-index:10}.settings-backdrop.hidden{display:none}.settings-panel{width:min(100%,520px);padding:24px;border:1px solid var(--accent);background:#10120e;box-shadow:12px 12px 0 rgba(135,169,255,.7)}.settings-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.settings-head h2{font:800 24px/1 Inter,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}.settings-head p{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.6}.settings-close{width:36px;height:36px;border:1px solid rgba(244,241,232,.25);background:transparent;color:var(--text);font-size:20px;cursor:pointer}.settings-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px 0}.settings-field{display:grid;gap:8px;padding:14px;border:1px solid rgba(244,241,232,.18)}.settings-field span{font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace}.settings-field small{color:var(--muted);font-size:10px}.settings-field input{width:100%;padding:10px;border:1px solid rgba(244,241,232,.28);border-radius:0;color:var(--text);background:var(--bg);font:800 20px/1 ui-monospace,SFMono-Regular,Menlo,monospace}.settings-summary{padding:12px;color:#c8cdbf;border-left:3px solid var(--orange);background:rgba(255,118,87,.09);font-size:12px;line-height:1.65}.settings-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}.settings-actions button{padding:11px 16px;border:1px solid rgba(244,241,232,.3);border-radius:0;background:transparent;color:var(--text);font:700 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer}.settings-actions .save{border-color:var(--accent);color:var(--bg);background:var(--accent)}
+@media(max-width:600px){.page{padding:16px}.start-page{padding-top:64px;padding-bottom:34px}.start-page .logo{font-size:44px}.info-card{padding:18px 16px}.prize-list li{display:grid;grid-template-columns:auto 1fr}.prize-item{grid-column:2}.btn-settings{left:16px;right:auto}.settings-grid{grid-template-columns:1fr}.settings-panel{max-height:92vh;overflow-y:auto}.question-card{padding:22px 18px}.result-page .result-score{font-size:58px}}
+@media(max-width:360px){.info-list li{display:block}.info-list .icon{display:inline-block;margin-right:6px}.info-card{padding-inline:14px}}
+@media(max-height:620px){.quiz-page,.result-page{justify-content:flex-start;padding-top:24px;padding-bottom:24px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="page start-page" id="startPage">
+  <button class="btn-lang" id="langBtn" onclick="switchLang()">🌐 EN</button>
+  <button class="btn-settings" id="settingsBtn" onclick="openSettings()">⚙ 设置</button>
+  <div class="logo">🦋</div>
+  <h1>InfoCo 快问快答</h1>
+  <p class="subtitle">西浦计算机社团 · 招新挑战</p>
+  <div class="info-card">
+    <div class="info-section">
+      <div class="info-section-title">🎯 挑战规则</div>
+      <ul class="info-list">
+        <li><span class="icon">⏳</span> 极速挑战：全局限时 <span class="hl">100 秒</span>，共 <span class="hl">20</span> 题</li>
+        <li><span class="icon">⚔️</span> 积分机制：答对 <span class="hl-correct">+10</span> 分，答错 <span class="hl-wrong">−5</span> 分，跳过不扣分。满分 <span class="hl">200</span> 分</li>
+      </ul>
+    </div>
+    <div class="info-divider"></div>
+    <div class="info-section">
+      <div class="info-section-title">🎁 战利品</div>
+      <ul class="prize-list">
+        <li class="prize-bronze"><span class="medal">🥉</span> <span class="prize-range">0 – 80 分</span><span class="prize-label">佛系参与奖</span><span class="prize-item">InfoCo 专属贴纸</span></li>
+        <li class="prize-silver"><span class="medal">🥈</span> <span class="prize-range">85 – 150 分</span><span class="prize-label">西浦懂王奖</span><span class="prize-item">专属挂牌 + 贴纸</span></li>
+        <li class="prize-gold"><span class="medal">🥇</span> <span class="prize-range">155 分及以上</span><span class="prize-label">硬核极客奖</span><span class="prize-item">定制鼠标垫 + 挂牌 + 贴纸</span></li>
+      </ul>
+    </div>
+  </div>
+  <button class="btn-start" onclick="startGame()">开始挑战</button>
+</div>
+<div class="page quiz-page hidden" id="quizPage">
+  <div class="quiz-info">
+    <div class="progress-text">第 <span id="qNum">1</span> / <span id="qTotal">20</span> 题</div>
+    <div class="timer-text" id="timerText">100</div>
+  </div>
+  <div class="progress-bar"><div class="fill" id="progressFill" style="width:5%"></div></div>
+  <div class="question-card" id="questionCard">
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="optionsContainer"></div>
+  </div>
+  <button class="btn-skip" id="skipBtn" onclick="skipQuestion()">跳过本题 →</button>
+</div>
+<div class="page result-page hidden" id="resultPage">
+  <div class="result-icon" id="resultIcon">🏆</div>
+  <div class="result-title" id="resultTitle"></div>
+  <div class="result-score" id="resultScore">0</div>
+  <div class="result-detail" id="resultDetail"></div>
+  <div class="result-rank" id="resultRank"></div>
+  <button class="btn-replay" onclick="restartGame()">再来一局</button>
+</div>
+<div class="settings-backdrop hidden" id="settingsBackdrop" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+  <div class="settings-panel">
+    <div class="settings-head">
+      <div><h2 id="settingsTitle">本机难度设置</h2><p id="settingsIntro">只保存在当前浏览器；线上首次打开仍使用默认配置。</p></div>
+      <button class="settings-close" onclick="closeSettings()" aria-label="关闭">×</button>
+    </div>
+    <div class="settings-grid">
+      <label class="settings-field"><span id="easyLabel">简单题</span><small>0–20</small><input id="easyCount" type="number" inputmode="numeric" min="0" max="20" step="1" oninput="previewSettings()"></label>
+      <label class="settings-field"><span id="mediumLabel">中等题</span><small>0–23</small><input id="mediumCount" type="number" inputmode="numeric" min="0" max="23" step="1" oninput="previewSettings()"></label>
+      <label class="settings-field"><span id="hardLabel">难题</span><small>0–18</small><input id="hardCount" type="number" inputmode="numeric" min="0" max="18" step="1" oninput="previewSettings()"></label>
+    </div>
+    <div class="settings-summary" id="settingsSummary"></div>
+    <div class="settings-actions"><button id="resetSettingsBtn" onclick="resetSettings()">恢复默认</button><button class="save" id="saveSettingsBtn" onclick="saveSettings()">保存到本机</button></div>
+  </div>
+</div>
+<script type="module" src="/games/quiz-config.mjs"></script>
+<script>
+var currentLang = 'zh';
+var T = {
+  zh: {
+    title:'InfoCo 快问快答', subtitle:'西浦计算机社团 · 招新挑战', btnStart:'开始挑战', btnLang:'🌐 EN',
+    ruleTitle:'🎯 挑战规则', rule1:'极速挑战：全局限时 ', rule1s:' 秒', rule1m:'，共 ', rule1e:' 题',
+    rule2:'积分机制：答对 ', rule2p:' 分，答错 ', rule2m:' 分，跳过不扣分。满分 ', rule2e:' 分',
+    prizeTitle:'🎁 战利品',
+    p1r:'0 – 80 分', p1l:'佛系参与奖', p1i:'InfoCo 专属贴纸',
+    p2r:'85 – 150 分', p2l:'西浦懂王奖', p2i:'专属挂牌 + 贴纸',
+    p3r:'155 分及以上', p3l:'硬核极客奖', p3i:'定制鼠标垫 + 挂牌 + 贴纸',
+    progPre:'第 ', progMid:' / ', progEnd:' 题', skipBtn:'跳过本题 →',
+    gold:'手速与智商双绝！', silver:'西浦懂王！', bronze:'佛系参与！',
+    rankGold:'获得 鼠标垫 + 挂牌 + 贴纸 🦋', rankSilver:'获得 专属挂牌 + 贴纸 🦋', rankBronze:'获得 InfoCo专属贴纸一张 🦋',
+    detPre:'答对 ', detM1:' 题 | 答错 ', detM2:' 题 | 跳过 ', detEnd:' 题', btnReplay:'再来一局',
+    settingsBtn:'⚙ 设置', settingsTitle:'本机难度设置', settingsIntro:'只保存在当前浏览器；线上首次打开仍使用默认配置。',
+    easy:'简单题', medium:'中等题', hard:'难题', reset:'恢复默认', save:'保存到本机',
+    summaryPre:'本局共 ', summaryMid:' 题，满分 ', summaryEnd:' 分。兑奖分数线保持不变。', saved:'设置已保存在本机。',
+    storageFailed:'浏览器阻止了本机保存；本次打开期间仍会使用当前设置。'
+  },
+  en: {
+    title:'InfoCo Quick Quiz', subtitle:'XJTLU CS Club · Recruitment Challenge', btnStart:'Start Challenge', btnLang:'🌐 中文',
+    ruleTitle:'🎯 Rules', rule1:'Speed Challenge: ', rule1s:'s total', rule1m:', ', rule1e:' questions',
+    rule2:'Scoring: Correct ', rule2p:', Wrong ', rule2m:', Skip 0. Max ', rule2e:' pts',
+    prizeTitle:'🎁 Prizes',
+    p1r:'0 – 80 pts', p1l:'Casual Award', p1i:'InfoCo Sticker',
+    p2r:'85 – 150 pts', p2l:'XJTLU Savvy', p2i:'Badge + Sticker',
+    p3r:'155+ pts', p3l:'Hardcore Geek', p3i:'Mouse Pad + Badge + Sticker',
+    progPre:'Q ', progMid:' / ', progEnd:'', skipBtn:'Skip →',
+    gold:'Speed & Genius!', silver:'XJTLU Savvy!', bronze:'Casual Player!',
+    rankGold:'Mouse Pad + Badge + Sticker 🦋', rankSilver:'Badge + Sticker 🦋', rankBronze:'InfoCo Sticker 🦋',
+    detPre:'Correct ', detM1:' | Wrong ', detM2:' | Skipped ', detEnd:'', btnReplay:'Play Again',
+    settingsBtn:'⚙ Settings', settingsTitle:'Device difficulty', settingsIntro:'Saved only in this browser; first-time online visitors keep the published defaults.',
+    easy:'Easy', medium:'Medium', hard:'Hard', reset:'Reset default', save:'Save on device',
+    summaryPre:'This run has ', summaryMid:' questions and a maximum of ', summaryEnd:' points. Prize thresholds do not change.', saved:'Settings saved on this device.',
+    storageFailed:'This browser blocked device storage; the current settings still apply until this page is closed.'
+  }
+};
+var QUIZ_STORAGE_KEY = 'infoco-quick-quiz-config-v1';
+var activeConfig = {easy:10,medium:6,hard:4,durationSeconds:100};
+var storageWarning = false;
+var settingsOpener = null;
+var windowMeta = document.querySelector('meta[name="infoco-quiz-window-ms"]');
+var serverWindowDuration = windowMeta ? Number(windowMeta.content) : Infinity;
+var serverWindowStartedAt = performance.now();
+function getConfigApi(){return window.InfoCoQuizConfig;}
+function isInsideServerWindow(){return performance.now()-serverWindowStartedAt<serverWindowDuration;}
+async function revalidateServerWindow(){
+  if(!isInsideServerWindow()){location.reload();return false;}
+  try{
+    var response=await fetch(location.href,{method:'HEAD',cache:'no-store'});
+    var phase=response.headers.get('X-InfoCo-Quiz-Phase');
+    if(phase&&phase!=='open'){location.reload();return false;}
+  }catch(error){
+    return isInsideServerWindow();
+  }
+  return isInsideServerWindow();
+}
+function scheduleServerClose(){
+  if(Number.isFinite(serverWindowDuration))setTimeout(function(){location.reload();},Math.max(0,serverWindowDuration)+50);
+}
+function loadSettings(){
+  var api=getConfigApi();
+  if(!api)return;
+  try{
+    var stored=localStorage.getItem(QUIZ_STORAGE_KEY);
+    activeConfig=stored?api.normalizeQuizConfig(JSON.parse(stored)):{...api.DEFAULT_QUIZ_CONFIG};
+  }catch(error){
+    activeConfig={...api.DEFAULT_QUIZ_CONFIG};
+  }
+  syncConfigUI();
+}
+function getQuestionTotal(){return activeConfig.easy+activeConfig.medium+activeConfig.hard;}
+function syncConfigUI(){
+  document.getElementById('easyCount').value=activeConfig.easy;
+  document.getElementById('mediumCount').value=activeConfig.medium;
+  document.getElementById('hardCount').value=activeConfig.hard;
+  document.getElementById('qTotal').textContent=getQuestionTotal();
+  updateUI();
+  previewSettings();
+}
+function openSettings(){
+  settingsOpener=document.activeElement;syncConfigUI();
+  document.getElementById('settingsBackdrop').classList.remove('hidden');
+  document.getElementById('startPage').setAttribute('aria-hidden','true');
+  setTimeout(function(){document.getElementById('easyCount').focus();},0);
+}
+function closeSettings(){
+  var backdrop=document.getElementById('settingsBackdrop');
+  if(backdrop.classList.contains('hidden'))return;
+  backdrop.classList.add('hidden');document.getElementById('startPage').removeAttribute('aria-hidden');
+  if(settingsOpener&&settingsOpener.focus)settingsOpener.focus();
+}
+function readSettingsForm(){
+  return {easy:document.getElementById('easyCount').value,medium:document.getElementById('mediumCount').value,hard:document.getElementById('hardCount').value};
+}
+function previewSettings(){
+  var api=getConfigApi();if(!api)return;
+  var config=api.normalizeQuizConfig(readSettingsForm());
+  var text=T[currentLang].summaryPre+api.getQuestionCount(config)+T[currentLang].summaryMid+api.getMaxScore(config)+T[currentLang].summaryEnd;
+  document.getElementById('settingsSummary').textContent=text+(storageWarning?' '+T[currentLang].storageFailed:'');
+}
+function saveSettings(){
+  var api=getConfigApi();if(!api)return;
+  activeConfig=api.normalizeQuizConfig(readSettingsForm());
+  try{localStorage.setItem(QUIZ_STORAGE_KEY,JSON.stringify(activeConfig));storageWarning=false;}
+  catch(error){storageWarning=true;}
+  syncConfigUI();if(!storageWarning)closeSettings();
+}
+function resetSettings(){
+  var api=getConfigApi();if(!api)return;
+  try{localStorage.removeItem(QUIZ_STORAGE_KEY);storageWarning=false;}
+  catch(error){storageWarning=true;}
+  activeConfig={...api.DEFAULT_QUIZ_CONFIG};syncConfigUI();
+}
+function switchLang(){currentLang=currentLang==='zh'?'en':'zh';updateUI();}
+function updateUI(){
+  var t=T[currentLang];
+  document.getElementById('langBtn').textContent=t.btnLang;
+  document.querySelector('.start-page h1').textContent=t.title;
+  document.querySelector('.start-page .subtitle').textContent=t.subtitle;
+  document.querySelector('.btn-start').textContent=t.btnStart;
+  var sections=document.querySelectorAll('.info-section');
+  sections[0].querySelector('.info-section-title').textContent=t.ruleTitle;
+  var rl=sections[0].querySelectorAll('li');
+  rl[0].innerHTML='<span class="icon">⏳</span> '+t.rule1+'<span class="hl">'+activeConfig.durationSeconds+t.rule1s+'</span>'+t.rule1m+'<span class="hl">'+getQuestionTotal()+'</span>'+t.rule1e;
+  rl[1].innerHTML='<span class="icon">⚔️</span> '+t.rule2+'<span class="hl-correct">+10</span>'+t.rule2p+'<span class="hl-wrong">−5</span>'+t.rule2m+'<span class="hl">'+(getQuestionTotal()*10)+'</span>'+t.rule2e;
+  sections[1].querySelector('.info-section-title').textContent=t.prizeTitle;
+  var pl=document.querySelectorAll('.prize-list li');
+  pl[0].querySelector('.prize-range').textContent=t.p1r;pl[0].querySelector('.prize-label').textContent=t.p1l;pl[0].querySelector('.prize-item').textContent=t.p1i;
+  pl[1].querySelector('.prize-range').textContent=t.p2r;pl[1].querySelector('.prize-label').textContent=t.p2l;pl[1].querySelector('.prize-item').textContent=t.p2i;
+  pl[2].querySelector('.prize-range').textContent=t.p3r;pl[2].querySelector('.prize-label').textContent=t.p3l;pl[2].querySelector('.prize-item').textContent=t.p3i;
+  document.getElementById('skipBtn').textContent=t.skipBtn;
+  document.querySelector('.btn-replay').textContent=t.btnReplay;
+  document.getElementById('settingsBtn').textContent=t.settingsBtn;
+  document.getElementById('settingsTitle').textContent=t.settingsTitle;
+  document.getElementById('settingsIntro').textContent=t.settingsIntro;
+  document.getElementById('easyLabel').textContent=t.easy;
+  document.getElementById('mediumLabel').textContent=t.medium;
+  document.getElementById('hardLabel').textContent=t.hard;
+  document.getElementById('resetSettingsBtn').textContent=t.reset;
+  document.getElementById('saveSettingsBtn').textContent=t.save;
+  document.querySelector('.progress-text').innerHTML=t.progPre+'<span id="qNum">'+(currentIndex+1)+'</span>'+t.progMid+'<span id="qTotal">'+getQuestionTotal()+'</span>'+t.progEnd;
+  previewSettings();
+}
+var QUESTION_BANK = [
+  {q:"InfoCo的官方吉祥物是什么？",en:{q:"What is InfoCo's official mascot?",options:["Little Butterfly","Little Bee","Robot Dog"]},options:["小蝴蝶","小蜜蜂","机器狗"],answer:0,difficulty:"easy"},
+  {q:"去小红书搜什么能找到我们的吉祥物？",en:{q:"What to search on Xiaohongshu to find our mascot?",options:["XJTLU InfoCo","InfoCo Little Butterfly","InfoCo Official"]},options:["西浦InfoCo","InfoCo小福蝶","InfoCo官方"],answer:1,difficulty:"easy"},
+  {q:"在InfoCo，你能找到一群热爱什么的人？",en:{q:"At InfoCo, you'll find people who love what?",options:["Computers & Tech","Pure slacking","Crazy cooking"]},options:["计算机与科技","纯粹摆烂","疯狂做菜"],answer:0,difficulty:"easy"},
+  {q:"除了打代码，西浦哪个社团是专门供大家交流和制作独立游戏的？",en:{q:"Which XJTLU club is dedicated to making indie games?",options:["Indie Game Club","Board Game Club","E-Sports Club"]},options:["独立游戏社 (Indie Game Club)","传统桌游社","电子竞技社"],answer:0,difficulty:"easy"},
+  {q:"西浦大部分教学楼进门的第一层通常叫什么？",en:{q:"What is the first floor of most XJTLU buildings called?",options:["1st Floor","G Floor","B1 Floor"]},options:["1层","G层","B1层"],answer:1,difficulty:"easy"},
+  {q:"为什么9月和10月，老生尽量避开去学校食堂吃饭？",en:{q:"Why do seniors avoid the cafeteria in Sept & Oct?",options:["Crowded with freshmen","Cafeteria closed","Seniors are dieting"]},options:["挤满了不懂点外卖的新生","食堂不开门","老生都在减肥"],answer:0,difficulty:"easy"},
+  {q:"每到饭点，座无虚席但其实没那么好吃的食堂是？",en:{q:"Which cafeteria is always packed but not that great?",options:["Yayuan","Basement","Hongyuan"]},options:["雅苑食堂","负一食堂","宏愿食堂"],answer:2,difficulty:"easy"},
+  {q:"为什么科学楼(SB)如此让西浦学生着迷？",en:{q:"Why is the Science Building (SB) so fascinating?",options:["Great for homework","The abbreviation is memorable","Don't want class"]},options:["补作业的绝佳地点","简写令人印象深刻","因为不想上课"],answer:1,difficulty:"easy"},
+  {q:"想在基础楼(FB)修仙熬夜，你应该去哪里？",en:{q:"Where to pull an all-nighter in FB building?",options:["Rooftop","Guard room","24-hour study room"]},options:["楼顶","门卫室","通宵教室"],answer:2,difficulty:"easy"},
+  {q:"DDL前夕，校园里哪个地方绝对人满为患？",en:{q:"Where is absolutely packed before deadlines?",options:["Library","Sports field","Gym"]},options:["图书馆","操场","健身房"],answer:0,difficulty:"easy"},
+  {q:"程序员数数，通常是从哪个数字开始的？",en:{q:"Programmers usually start counting from which number?",options:["1","0","-1"]},options:["1","0","-1"],answer:1,difficulty:"easy"},
+  {q:"程序员解决99%电脑问题的终极必杀技是？",en:{q:"The ultimate fix for 99% of computer problems?",options:["Smash it","Call police","Try restarting"]},options:["砸电脑","报警","重启试试"],answer:2,difficulty:"easy"},
+  {q:"键盘上Ctrl+C和Ctrl+V代表的法术是？",en:{q:"What spell do Ctrl+C and Ctrl+V cast?",options:["Copy & Paste","Undo & Redo","Shutdown & Leave"]},options:["复制粘贴","撤销重做","关机走人"],answer:0,difficulty:"easy"},
+  {q:"如果网页显示404，代表什么意思？",en:{q:"What does a 404 error on a webpage mean?",options:["Server exploded","Please pay","Page not found"]},options:["服务器爆炸","请充值","网页找不到了"],answer:2,difficulty:"easy"},
+  {q:"计算机中，1 Byte等于多少Bit？",en:{q:"How many Bits equal 1 Byte?",options:["8","16","32"]},options:["8","16","32"],answer:0,difficulty:"easy"},
+  {q:"计算机内存（RAM）在突然断电后，数据会？",en:{q:"What happens to RAM data after power loss?",options:["Saved on drive","All lost","Auto-uploaded to cloud"]},options:["永久保存在硬盘里","全部丢失","自动上传云端"],answer:1,difficulty:"easy"},
+  {q:"遇到代码Bug时，程序员最常说的第一句话是？",en:{q:"What do programmers say first when finding a bug?",options:["I'll fix it now!","I hereby resign.","Impossible, works on my machine!"]},options:["马上修好！","我这就引咎辞职。","不可能啊，在我电脑上是好的！"],answer:2,difficulty:"easy"},
+  {q:"1024在程序员眼里是什么特殊日子？",en:{q:"What special day is Oct 24 for programmers?",options:["Bankruptcy Day","Programmers' Day","Keyboard Sale Day"]},options:["破产日","程序员节","键盘大促日"],answer:1,difficulty:"easy"},
+  {q:"世界上最好的编程语言是？（送命梗题）",en:{q:"The best programming language? (Dangerous!)",options:["Python","PHP","Java"]},options:["Python","PHP","Java"],answer:1,difficulty:"easy"},
+  {q:"传说中，很多程序员会在代码注释里画什么来保佑没有Bug？",en:{q:"What do programmers draw in comments to ward off bugs?",options:["God of Wealth","Buddha","Spider-Man"]},options:["财神爷","佛祖","蜘蛛侠"],answer:1,difficulty:"easy"},
+  {q:"西浦的学术英语课程简称是什么？",en:{q:"What is the abbreviation for XJTLU's academic English course?",options:["EAP","ESP","EFL"]},options:["EAP","ESP","EFL"],answer:0,difficulty:"medium"},
+  {q:"西浦学生选课系统的名字是？",en:{q:"What is XJTLU's course selection system called?",options:["e-Bridge","i-XJTLU","XJTLU-Portal"]},options:["e-Bridge","i-XJTLU","XJTLU-Portal"],answer:0,difficulty:"medium"},
+  {q:"决定大一新生最终能选上什么专业的「命脉」，通常是哪两门课的成绩？",en:{q:"Which two courses determine freshmen's major placement?",options:["English & PE","CS & Physics","Linear Algebra & Calculus"]},options:["英语和体育","计算机和物理","线性代数和微积分"],answer:2,difficulty:"medium"},
+  {q:"西浦的图书馆需要刷什么才能进？",en:{q:"What do you need to swipe to enter XJTLU's library?",options:["Campus Card","ID Card","No restriction"]},options:["校园卡","身份证","随便进"],answer:0,difficulty:"medium"},
+  {q:"大一新生想和其他年级的学长互换宿舍床位，根据宿舍官网规定？",en:{q:"Can freshmen swap dorm beds with seniors per rules?",options:["If you pay","Absolutely not","With counselor approval"]},options:["给钱就行","绝对不行","辅导员签字就行"],answer:1,difficulty:"medium"},
+  {q:"在LS楼待久了头晕嗓子痒，大概率是因为？",en:{q:"Why do you feel dizzy in LS building?",options:["Formaldehyde from renovation","Studying too hard","Too many floors"]},options:["刚装修完感觉甲醛没散尽","学习太累","楼层太高"],answer:0,difficulty:"medium"},
+  {q:"西浦有个社团，近几届社长竟然都是商学生，它是？",en:{q:"Which club had business students as recent presidents?",options:["Investment Club","Debate Club","InfoCo"]},options:["投资社","辩论社","InfoCo"],answer:2,difficulty:"medium"},
+  {q:"InfoCo不仅搞技术，还爱搞大事情，如为期一周的极限编程挑战叫什么？",en:{q:"InfoCo's week-long programming challenge is called?",options:["Sports Day","Debate Contest","Hackathon"]},options:["运动会","辩论赛","Hackathon (黑客松)"],answer:2,difficulty:"medium"},
+  {q:"HTML是什么的缩写？",en:{q:"What does HTML stand for?",options:["HyperText Markup Language","High Tech Modern Language","Home Tool Markup Language"]},options:["HyperText Markup Language","High Tech Modern Language","Home Tool Markup Language"],answer:0,difficulty:"medium"},
+  {q:"CSS的主要作用是什么？",en:{q:"What is CSS mainly used for?",options:["Styling & layout","Database management","Handling requests"]},options:["控制网页样式和布局","管理数据库","处理用户请求"],answer:0,difficulty:"medium"},
+  {q:"Python的创造者是谁？",en:{q:"Who created Python?",options:["Guido van Rossum","Linus Torvalds","Dennis Ritchie"]},options:["Guido van Rossum","Linus Torvalds","Dennis Ritchie"],answer:0,difficulty:"medium"},
+  {q:"Git中，把代码从远程仓库拉到本地的命令是？",en:{q:"Which Git command pulls code from remote to local?",options:["git pull","git push","git commit"]},options:["git pull","git push","git commit"],answer:0,difficulty:"medium"},
+  {q:"Linux中，查看当前目录下文件列表的命令是？",en:{q:"Which Linux command lists files?",options:["ls","cd","pwd"]},options:["ls","cd","pwd"],answer:0,difficulty:"medium"},
+  {q:"二进制数1010转换成十进制是多少？",en:{q:"What is binary 1010 in decimal?",options:["10","12","8"]},options:["10","12","8"],answer:0,difficulty:"medium"},
+  {q:"HTTP状态码200代表什么？",en:{q:"What does HTTP 200 mean?",options:["Success","Not Found","Server Error"]},options:["请求成功","页面未找到","服务器错误"],answer:0,difficulty:"medium"},
+  {q:"哪种数据结构遵循先进先出(FIFO)原则？",en:{q:"Which data structure follows FIFO?",options:["Queue","Stack","Tree"]},options:["队列(Queue)","栈(Stack)","树(Tree)"],answer:0,difficulty:"medium"},
+  {q:"C语言中，用于动态分配内存的函数是？",en:{q:"Which C function dynamically allocates memory?",options:["malloc","free","printf"]},options:["malloc","free","printf"],answer:0,difficulty:"medium"},
+  {q:"SQL中，用于从数据库查询数据的关键字是？",en:{q:"Which SQL keyword queries data?",options:["SELECT","INSERT","DELETE"]},options:["SELECT","INSERT","DELETE"],answer:0,difficulty:"medium"},
+  {q:"面向对象编程的三大特征是？",en:{q:"What are the three pillars of OOP?",options:["Encapsulation, Inheritance, Polymorphism","Abstraction, Interface, Delegation","Process, Function, Variable"]},options:["封装、继承、多态","抽象、接口、委托","过程、函数、变量"],answer:0,difficulty:"medium"},
+  {q:"TCP和UDP的主要区别是？",en:{q:"Main difference between TCP and UDP?",options:["TCP is reliable, UDP is connectionless","TCP is faster, UDP is slower","TCP for text, UDP for video"]},options:["TCP可靠连接，UDP无连接","TCP更快，UDP更慢","TCP只能传文字，UDP只能传视频"],answer:0,difficulty:"medium"},
+  {q:"MacOS系统是基于哪个内核开发的？",en:{q:"Which kernel is macOS based on?",options:["XNU/Darwin","Linux","Windows NT"]},options:["XNU/Darwin","Linux","Windows NT"],answer:0,difficulty:"medium"},
+  {q:"在计算机中，1 KB等于多少字节？",en:{q:"How many bytes equal 1 KB?",options:["1024","1000","512"]},options:["1024","1000","512"],answer:0,difficulty:"medium"},
+  {q:"很多西方奇幻题材的游戏中，法师最脆皮，那程序员在开发中「最脆皮」的是？",en:{q:"In fantasy games mages are squishy. What's the squishiest thing for devs?",options:["Keyboard","Server/System","Hair"]},options:["键盘","服务器/系统","头发"],answer:1,difficulty:"medium"},
+  {q:"时间复杂度O(n log n)通常对应哪种排序算法？",en:{q:"O(n log n) typically corresponds to which sort?",options:["Merge sort","Bubble sort","Selection sort"]},options:["归并排序","冒泡排序","选择排序"],answer:0,difficulty:"hard"},
+  {q:"在操作系统里，死锁需要的四个条件不包括？",en:{q:"Which is NOT a deadlock condition?",options:["Priority scheduling","Mutex","Circular wait"]},options:["优先级调度","互斥","循环等待"],answer:0,difficulty:"hard"},
+  {q:"DNS的主要作用是什么？",en:{q:"What is DNS's main function?",options:["Domain to IP resolution","Encrypt traffic","Assign MAC addresses"]},options:["将域名解析为IP地址","加密网络通信","分配MAC地址"],answer:0,difficulty:"hard"},
+  {q:"什么是RESTful API的核心设计原则？",en:{q:"RESTful API core principle?",options:["Stateless, resource-oriented","Stateful, OOP","Sync blocking, long connection"]},options:["无状态、资源导向","有状态、面向对象","同步阻塞、长连接"],answer:0,difficulty:"hard"},
+  {q:"Docker容器与传统虚拟机的最大区别是？",en:{q:"Docker vs VM main difference?",options:["Container shares host kernel, VM has own kernel","Container is slower","VM is lighter"]},options:["容器共享宿主内核，VM有独立内核","容器更慢","VM更轻量"],answer:0,difficulty:"hard"},
+  {q:"在计算机网络中，OSI模型共有几层？",en:{q:"How many layers in the OSI model?",options:["7","5","4"]},options:["7层","5层","4层"],answer:0,difficulty:"hard"},
+  {q:"快速排序在最坏情况下的时间复杂度是？",en:{q:"Quicksort worst case time complexity?",options:["O(n^2)","O(n log n)","O(n)"]},options:["O(n^2)","O(n log n)","O(n)"],answer:0,difficulty:"hard"},
+  {q:"关系数据库中，第三范式(3NF)主要消除什么？",en:{q:"What does 3NF mainly eliminate?",options:["Transitive dependency","Partial dependency","Multi-valued dependency"]},options:["传递依赖","部分依赖","多值依赖"],answer:0,difficulty:"hard"},
+  {q:"HTTPS相比HTTP，额外使用了什么来保证安全？",en:{q:"What does HTTPS add over HTTP?",options:["TLS/SSL encryption","FTP transfer","Cookie verification"]},options:["TLS/SSL加密","FTP传输","Cookie验证"],answer:0,difficulty:"hard"},
+  {q:"进程与线程的主要区别是？",en:{q:"Process vs thread main difference?",options:["Process has own address space, threads share","Thread is slower","Process can't concurrent"]},options:["进程有独立地址空间，线程共享","线程更慢","进程不能并发"],answer:0,difficulty:"hard"},
+  {q:"哈希表查找的平均时间复杂度是？",en:{q:"Hash table average lookup complexity?",options:["O(1)","O(n)","O(log n)"]},options:["O(1)","O(n)","O(log n)"],answer:0,difficulty:"hard"},
+  {q:"什么是CAP定理中的C？",en:{q:"What is C in CAP theorem?",options:["Consistency","Concurrency","Computation"]},options:["一致性(Consistency)","并发性(Concurrency)","计算力(Computation)"],answer:0,difficulty:"hard"},
+  {q:"二叉搜索树(BST)中序遍历的结果是？",en:{q:"BST inorder traversal result?",options:["Ascending","Descending","Random"]},options:["升序排列","降序排列","随机排列"],answer:0,difficulty:"hard"},
+  {q:"编译器与解释器的根本区别是？",en:{q:"Compiler vs interpreter fundamental difference?",options:["Compiler translates all then runs, interpreter runs line by line","Compiler is slower","Interpreter only handles Python"]},options:["编译器整体翻译后执行，解释器逐行翻译执行","编译器更慢","解释器只能处理Python"],answer:0,difficulty:"hard"},
+  {q:"服务器内部错误崩溃时，通常会看到哪个HTTP状态码？",en:{q:"Which HTTP status code for internal server error?",options:["200","404","500"]},options:["200","404","500"],answer:2,difficulty:"hard"},
+  {q:"在JavaScript中，用于声明不可变常量的是哪个关键字？",en:{q:"Which JS keyword declares an immutable constant?",options:["var","let","const"]},options:["var","let","const"],answer:2,difficulty:"hard"},
+  {q:"关系型数据库中，用于唯一标识每条记录的字段称为？",en:{q:"What field uniquely identifies a record in a DB?",options:["Foreign key","Primary key","Index"]},options:["外键","主键","索引"],answer:1,difficulty:"hard"},
+  {q:"在正则表达式中，匹配任意单个字符的特殊符号是？",en:{q:"Regex symbol for any single character?",options:["*",".","?"]},options:["*",".","?"],answer:1,difficulty:"hard"}
+];
+var questions = [];
+var currentIndex = 0;
+var score = 0;
+var correctCount = 0;
+var wrongCount = 0;
+var skipCount = 0;
+var timeLeft = 100;
+var timerInterval = null;
+var timerDeadline = 0;
+var isAnswering = false;
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+async function startGame() {
+  if(!(await revalidateServerWindow()))return;
+  var api=getConfigApi();
+  if(api){questions=api.selectQuestions(QUESTION_BANK,activeConfig);}
+  else{
+    var easyQs=shuffle(QUESTION_BANK.filter(function(q){return q.difficulty==='easy'})).slice(0,activeConfig.easy);
+    var mediumQs=shuffle(QUESTION_BANK.filter(function(q){return q.difficulty==='medium'})).slice(0,activeConfig.medium);
+    var hardQs=shuffle(QUESTION_BANK.filter(function(q){return q.difficulty==='hard'})).slice(0,activeConfig.hard);
+    questions=shuffle(easyQs.concat(mediumQs)).concat(hardQs);
+  }
+  currentIndex = 0; score = 0; correctCount = 0; wrongCount = 0; skipCount = 0;
+  timeLeft = activeConfig.durationSeconds; isAnswering = false;
+  document.getElementById('startPage').classList.add('hidden');
+  document.getElementById('resultPage').classList.add('hidden');
+  document.getElementById('quizPage').classList.remove('hidden');
+  startTimer();
+  showQuestion();
+}
+function startTimer() {
+  var el = document.getElementById('timerText');
+  el.classList.remove('warning');
+  timerDeadline=performance.now()+activeConfig.durationSeconds*1000;
+  renderTimer();
+  timerInterval=setInterval(renderTimer,250);
+}
+function renderTimer(){
+  if(!timerDeadline)return;
+  var el=document.getElementById('timerText');
+  timeLeft=Math.max(0,Math.ceil((timerDeadline-performance.now())/1000));
+  el.textContent=timeLeft;
+  if(timeLeft<=10)el.classList.add('warning');
+  if(timeLeft<=0){clearInterval(timerInterval);timerInterval=null;timerDeadline=0;endGame();}
+}
+function showQuestion() {
+  if(!isInsideServerWindow()){location.reload();return;}
+  if (currentIndex >= questions.length) { endGame(); return; }
+  isAnswering = false;
+  var q = questions[currentIndex];
+  var lang = currentLang;
+  var qData = q[lang] || q;
+  var t = T[lang];
+  document.getElementById('qNum').textContent = currentIndex + 1;
+  document.getElementById('progressFill').style.width = ((currentIndex + 1) / questions.length * 100) + '%';
+  document.getElementById('qText').textContent = qData.q;
+  var container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  var labels = ['A','B','C','D','E','F'];
+  qData.options.forEach(function(opt, i){
+    var btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = '<span class="idx">' + labels[i] + '</span>' + opt;
+    btn.onclick = function(){ selectOption(i); };
+    container.appendChild(btn);
+  });
+  document.getElementById('skipBtn').style.display = '';
+  var card = document.getElementById('questionCard');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = '';
+}
+function selectOption(idx) {
+  if (isAnswering) return;
+  isAnswering = true;
+  var q = questions[currentIndex];
+  var btns = document.querySelectorAll('.option-btn');
+  btns.forEach(function(b){ b.classList.add('disabled'); });
+  document.getElementById('skipBtn').style.display = 'none';
+  if (idx === q.answer) {
+    btns[idx].classList.add('correct');
+    score += 10; correctCount++;
+  } else {
+    btns[idx].classList.add('wrong');
+    btns[q.answer].classList.add('correct');
+    score -= 5; wrongCount++;
+  }
+  setTimeout(function(){ currentIndex++; showQuestion(); }, 500);
+}
+function skipQuestion() {
+  if (isAnswering) return;
+  skipCount++;
+  currentIndex++;
+  showQuestion();
+}
+function endGame() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  timerDeadline = 0;
+  document.getElementById('quizPage').classList.add('hidden');
+  document.getElementById('resultPage').classList.remove('hidden');
+  var finalScore = Math.max(0, score);
+  var t = T[currentLang];
+  var icon, title, rank;
+  if (finalScore >= 155) {
+    icon = '\u{1F3C6}'; title = t.gold; rank = t.rankGold;
+  } else if (finalScore >= 85) {
+    icon = '\u{1F31F}'; title = t.silver; rank = t.rankSilver;
+  } else {
+    icon = '\u{1F98B}'; title = t.bronze; rank = t.rankBronze;
+  }
+  document.getElementById('resultIcon').textContent = icon;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultScore').textContent = finalScore;
+  document.getElementById('resultDetail').textContent = t.detPre + correctCount + t.detM1 + wrongCount + t.detM2 + skipCount + t.detEnd;
+  document.getElementById('resultRank').textContent = rank;
+}
+async function restartGame() {
+  if(!(await revalidateServerWindow()))return;
+  document.getElementById('resultPage').classList.add('hidden');
+  document.getElementById('startPage').classList.remove('hidden');
+}
+window.addEventListener('load',function(){loadSettings();scheduleServerClose();});
+document.getElementById('settingsBackdrop').addEventListener('click',function(event){if(event.target===this)closeSettings();});
+document.addEventListener('visibilitychange',function(){if(!document.hidden){revalidateServerWindow();renderTimer();}});
+document.addEventListener('keydown',function(event){
+  var backdrop=document.getElementById('settingsBackdrop');
+  if(event.key==='Escape'){closeSettings();return;}
+  if(event.key!=='Tab'||backdrop.classList.contains('hidden'))return;
+  var controls=backdrop.querySelectorAll('button,input');
+  var first=controls[0],last=controls[controls.length-1];
+  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+});
+</script>
+</body>
+</html>

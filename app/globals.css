@@ -198,6 +198,16 @@ button { color: inherit; font: inherit; }
 .feature-meta span, .feature-meta strong { display: block; }
 .feature-meta span { margin-bottom: 8px; font: 700 8px/1 ui-monospace, monospace; letter-spacing: .12em; }
 .feature-meta strong { font-size: 12px; }
+.event-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; }
+.map-link { padding-bottom: 4px; border-bottom: 1px solid currentColor; font-size: 12px; font-weight: 750; }
+.map-link:hover { color: var(--paper); }
+.event-map { min-width: 0; min-height: 570px; align-self: center; display: grid; align-content: center; margin: 0; overflow: hidden; border: 1px solid rgba(7,8,6,.28); background: rgba(244,241,232,.2); }
+.event-map a { display: block; padding: 12px; border-bottom: 1px solid rgba(7,8,6,.22); background: var(--paper); }
+.event-map img { display: block; width: 100%; height: auto; }
+.event-map figcaption { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 8px 20px; padding: 18px; background: var(--acid); }
+.event-map figcaption span, .event-map figcaption small { font: 700 8px/1.4 ui-monospace, monospace; letter-spacing: .1em; }
+.event-map figcaption strong { font: 850 18px/1 ui-monospace, monospace; }
+.event-map figcaption small { grid-column: 1 / -1; color: rgba(7,8,6,.58); }
 .event-feature-art { position: relative; min-height: 570px; display: grid; place-items: center; border: 1px solid rgba(7,8,6,.25); background: repeating-linear-gradient(90deg, transparent 0 42px, rgba(7,8,6,.07) 43px), repeating-linear-gradient(0deg, transparent 0 42px, rgba(7,8,6,.07) 43px); }
 .event-feature-art > b { position: absolute; right: 24px; bottom: 20px; text-align: right; font: 900 clamp(36px, 6vw, 88px)/.78 ui-monospace, monospace; letter-spacing: -.09em; opacity: .18; }
 .radar { position: relative; width: min(80%, 430px); aspect-ratio: 1; border: 2px solid var(--ink); border-radius: 50%; }
@@ -214,6 +224,7 @@ button { color: inherit; font: inherit; }
 .status-已发布 { color: #3d6500; }
 .status-开发中 { color: #304fb9; }
 .status-构思中 { color: #8a3b27; }
+.status-概念中, .status-规划中, .status-探索中 { color: #5a3b24; }
 .project-card:hover .status-tag { color: inherit; }
 .project-icon { min-height: 205px; display: grid; place-items: center; margin: 22px 0 28px; color: var(--ink); background: var(--acid); font: 900 48px/1 ui-monospace, monospace; letter-spacing: -.08em; overflow: hidden; }
 .project-card.blue .project-icon { background: var(--blue); }
@@ -225,6 +236,8 @@ button { color: inherit; font: inherit; }
 .tag-row span { padding: 6px 8px; border: 1px solid rgba(7,8,6,.18); font: 650 8px/1 ui-monospace, monospace; }
 .project-card:hover .tag-row span { border-color: var(--line); }
 .card-link { margin-top: auto; padding-top: 24px; font: 750 9px/1 ui-monospace, monospace; }
+.concept-card { cursor: default; }
+.concept-card h3 { overflow-wrap: anywhere; font-size: clamp(22px, 2.2vw, 30px); }
 .track-section { color: var(--ink); background: var(--acid); }
 .track-grid { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid rgba(7,8,6,.28); }
 .track-card { min-height: 345px; display: flex; flex-direction: column; padding: 20px; border-right: 1px solid rgba(7,8,6,.28); }
@@ -473,7 +486,7 @@ button { color: inherit; font: inherit; }
   .mobile-nav small { display: block; margin-top: 4px; color: var(--muted); font: 700 8px/1 ui-monospace, monospace; text-transform: uppercase; }
   .mobile-nav i { font-style: normal; }
   .statement-grid, .home-event, .featured-game, .page-intro, .events-note, .submission-note, .detail-info { grid-template-columns: 1fr; }
-  .event-feature-art { margin-top: 55px; }
+  .event-feature-art, .event-map { margin-top: 55px; }
   .home-project-grid { grid-template-columns: 1fr 1fr; }
   .track-grid, .role-grid { grid-template-columns: 1fr 1fr; }
   .track-card:nth-child(2), .role-grid article:nth-child(2) { border-right: 0; }
@@ -503,7 +516,9 @@ button { color: inherit; font: inherit; }
   .home-event { padding: 75px 18px; }
   .feature-meta { grid-template-columns: 1fr; }
   .feature-meta > div { border-bottom: 1px solid rgba(7,8,6,.18); }
-  .event-feature-art { min-height: 400px; }
+  .event-feature-art, .event-map { min-height: 0; }
+  .event-map figcaption { grid-template-columns: 1fr; }
+  .event-map figcaption small { grid-column: auto; }
   .home-project-grid, .track-grid, .role-grid, .value-grid, .timeline, .flow-grid, .mode-protocol { grid-template-columns: 1fr; }
   .project-card { min-height: 500px; }
   .track-card, .role-grid article { min-height: 260px; border-right: 0; border-bottom: 1px solid rgba(7,8,6,.28); }
