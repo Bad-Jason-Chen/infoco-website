@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { Shell } from './components/SiteChrome';
+import { events } from './content';
 
 const tracks = [
   ['01', '编程学习', '从第一行代码，到能独立理解并解决问题。', '</>'],
@@ -35,6 +36,8 @@ const conceptProjects = [
   },
 ];
 
+const openHouse = events.find((event) => event.slug === 'new-member-open-house')!;
+
 export default function Home() {
   return (
     <Shell>
@@ -57,7 +60,7 @@ export default function Home() {
             </div>
             <div className="console-foot"><span>04 CORE TRACKS</span><span>05 DIVISIONS</span><span>01 GAME ONLINE</span></div>
           </div>
-          <a className="signal-card" href="#recruitment"><span className="signal-label">NEXT / 下一信号</span><span className="signal-title">9 月 2 日新成员开放日</span><span className="signal-desc">09:00–20:00 · 学术类社团区 8 号展位</span><span className="signal-arrow">↓</span></a>
+          <a className="signal-card" href="#recruitment"><span className="signal-label">NEXT / 下一信号</span><span className="signal-title">9 月 2 日百团大战</span><span className="signal-desc">09:00–20:00 · 学术类社团区 8 号展位</span><span className="signal-arrow">↓</span></a>
         </section>
 
         <div className="ticker" aria-label="InfoCo 关键词"><div>LEARN_01&nbsp;&nbsp;✦&nbsp;&nbsp;MAKE_02&nbsp;&nbsp;✦&nbsp;&nbsp;SHIP_03&nbsp;&nbsp;✦&nbsp;&nbsp;SHARE_04&nbsp;&nbsp;✦&nbsp;&nbsp;CODE THE CULTURE&nbsp;&nbsp;✦&nbsp;&nbsp;LEARN_01&nbsp;&nbsp;✦&nbsp;&nbsp;MAKE_02&nbsp;&nbsp;✦&nbsp;&nbsp;SHIP_03&nbsp;&nbsp;✦&nbsp;&nbsp;SHARE_04</div></div>
@@ -70,7 +73,7 @@ export default function Home() {
 
         <section className="home-event section-pad" id="recruitment">
           <div className="section-index light">02 / CURRENT SIGNAL</div>
-          <div className="event-feature-copy"><span className="status-pill">● 9.2 限时开放 / SCHEDULED</span><h2>新成员开放日</h2><p>来 8 号展位认识 InfoCo、聊聊你想做的项目，也可以现场挑战“快问快答”。游戏仅在活动当天 09:00–20:00 开放，兑奖由现场社员协助完成。</p><div className="feature-meta"><div><span>DATE / TIME</span><strong>2026.09.02 · 09:00–20:00</strong></div><div><span>LOCATION</span><strong>西交利物浦大学南校区<br />学术类社团区 8 号展位</strong></div><div><span>ENTRY</span><strong>现场免费参与</strong></div></div><div className="event-actions"><a className="btn btn-dark" href="/games/quick-quiz">进入限时挑战 <span>→</span></a><a className="map-link" href="/recruitment/academic-clubs-map.png" target="_blank" rel="noreferrer">查看完整地图 ↗</a></div></div>
+          <div className="event-feature-copy"><span className="status-pill">● 9.2 百团大战 / SCHEDULED</span><h2>{openHouse.title}</h2><p>来 8 号展位认识 InfoCo、聊聊你想做的项目，也可以现场挑战“快问快答”。游戏仅在活动当天 09:00–20:00 开放，兑奖由现场社员协助完成。</p><div className="feature-meta"><div><span>DATE / TIME</span><strong>2026.09.02 · 09:00–20:00</strong></div><div><span>LOCATION</span><strong>西交利物浦大学南校区<br />学术类社团区 8 号展位</strong></div><div><span>ENTRY</span><strong>现场免费参与</strong></div></div><div className="event-actions"><a className="btn btn-dark" href={openHouse.href}>查看活动详情 <span>→</span></a><a className="map-link" href="/games/quick-quiz">进入限时挑战 ↗</a><a className="map-link" href="/recruitment/academic-clubs-map.png" target="_blank" rel="noreferrer">查看完整地图 ↗</a></div></div>
           <figure className="event-map"><a href="/recruitment/academic-clubs-map.png" target="_blank" rel="noreferrer" aria-label="打开学术类社团完整地图"><Image src="/recruitment/academic-clubs-map.png" width={2560} height={1499} sizes="(max-width: 1080px) 100vw, 55vw" alt="学校学术类社团地图，InfoCo 计算机科学类编程社团位于 8 号展位" /></a><figcaption><span>ACADEMIC CLUBS MAP</span><strong>INFOCO · BOOTH 08</strong><small>点击查看学校宣传地图原图</small></figcaption></figure>
         </section>
 
@@ -88,7 +91,7 @@ export default function Home() {
           <div className="section-heading"><div><span className="section-index">05 / ACTIVITY LOG</span><h2>现场，才是最好的<br /><em>更新日志。</em></h2></div><p>为保护社员隐私，真实活动照片将在取得公开授权后更新；当前版先保留影像位与活动语境。</p></div>
           <div className="log-grid"><div className="log-frame log-a"><span>WORKSHOP / 01</span><b>&lt;CODE<br />TOGETHER&gt;</b><i /></div><div className="log-frame log-b"><span>HACK NIGHT / 02</span><b>BUILD<br />AFTER<br />DARK</b><i /></div><div className="log-frame log-c"><span>SHOW & TELL / 03</span><b>SHIP IT!</b><i /></div></div>
         </section>
-        <section className="closing-cta"><span className="section-index">06 / NEXT MOVE</span><h2>你的第一个项目，<br />不必一个人开始。</h2><div><a className="btn btn-primary" href="/join">查看加入方式 <span>→</span></a><a className="btn btn-ghost" href="/games/infoco-exe">先玩一局 <span>↗</span></a></div></section>
+        <section className="closing-cta"><span className="section-index">06 / NEXT MOVE</span><h2>你的第一个项目，<br />不必一个人开始。</h2><div><a className="btn btn-primary" href={openHouse.href}>了解百团大战 <span>→</span></a><a className="btn btn-ghost" href="/join">查看加入方式 <span>↗</span></a></div></section>
       </main>
     </Shell>
   );

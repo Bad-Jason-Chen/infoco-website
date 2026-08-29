@@ -1,3 +1,5 @@
+import { upcomingEvents } from './lib/event-data.mjs';
+
 export type EventRecord = {
   slug: string;
   title: string;
@@ -5,49 +7,15 @@ export type EventRecord = {
   date: string;
   year: string;
   place: string;
-  type: '课程' | '比赛' | '招新' | '分享';
+  type: '课程' | '比赛' | '招新' | '分享' | '会议' | '文化节';
   status: 'upcoming' | 'past';
   summary: string;
   tone: 'acid' | 'blue' | 'orange' | 'violet';
+  href?: string;
 };
 
 export const events: EventRecord[] = [
-  {
-    slug: 'new-member-open-house',
-    title: '新成员开放日',
-    eyebrow: 'OPEN HOUSE',
-    date: '9 月 2 日 · 09:00–20:00',
-    year: '2026',
-    place: '西交利物浦大学南校区 · 学术类社团区 8 号展位',
-    type: '招新',
-    status: 'upcoming',
-    summary: '认识 InfoCo 的四条核心方向，与项目成员面对面聊聊你想做的东西，并参加现场限时问答挑战。',
-    tone: 'orange',
-  },
-  {
-    slug: 'java-warp-drive',
-    title: 'Java Warp Drive',
-    eyebrow: 'LEARNING TRACK',
-    date: '新学期计划',
-    year: '2026',
-    place: '校内 · 教室待公布',
-    type: '课程',
-    status: 'upcoming',
-    summary: '从语法地基到面向对象与设计模式，一条面向初学者的完整学习航线。',
-    tone: 'acid',
-  },
-  {
-    slug: 'dual-core-initiative',
-    title: 'Dual-core Initiative',
-    eyebrow: 'C × PYTHON',
-    date: '新学期计划',
-    year: '2026',
-    place: '线上 + 校内',
-    type: '课程',
-    status: 'upcoming',
-    summary: '用 C 语言理解计算机底层逻辑，用 Python 把想法快速做成原型。',
-    tone: 'blue',
-  },
+  ...(upcomingEvents as EventRecord[]),
   {
     slug: 'apex-arena',
     title: 'Apex Arena',
@@ -80,8 +48,8 @@ export const projects: ProjectRecord[] = [
     name: 'InfoCo.exe',
     kind: '校园互动游戏',
     status: '已发布',
-    summary: '校园系统紧急维修：在倒计时内修复异常节点，让所有系统重新上线。',
-    tags: ['Web Game', 'Interaction', 'Vanilla Logic'],
+    summary: 'Signal Route：旋转线路模块，在倒计时内完成三段逐步升级的校园信号链路。',
+    tags: ['Web Game', 'Puzzle', 'Touch Ready'],
     collaborators: false,
     tone: 'acid',
     href: '/games/infoco-exe',

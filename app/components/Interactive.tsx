@@ -2,6 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { EventRecord } from '../content';
+import { getEventHref } from '../lib/event-links.mjs';
+import { DIRECTIONS, createLevel, hasSignal, rotateCell, traceSignal } from '../lib/signal-route.mjs';
+
+const eventGlyphs: Record<EventRecord['type'], string> = {
+  '课程': '</>',
+  '比赛': '48H',
+  '招新': 'HELLO',
+  '分享': 'LIVE',
+  '会议': 'MEET',
+  '文化节': 'FEST',
+};
 
 export function EventExplorer({ events }: { events: EventRecord[] }) {
   const [status, setStatus] = useState<'upcoming' | 'past'>('upcoming');
@@ -14,13 +25,13 @@ export function EventExplorer({ events }: { events: EventRecord[] }) {
           <button className={status === 'upcoming' ? 'active' : ''} onClick={() => setStatus('upcoming')}>即将举行 <span>UPCOMING</span></button>
           <button className={status === 'past' ? 'active' : ''} onClick={() => setStatus('past')}>往期活动 <span>ARCHIVE</span></button>
         </div>
-        <div className="filter-row"><span>FILTER:</span>{['全部', '课程', '比赛', '招新', '分享'].map((item) => <button key={item} onClick={() => setType(item)} className={type === item ? 'active' : ''}>{item}</button>)}</div>
+        <div className="filter-row"><span>FILTER:</span>{['全部', '课程', '比赛', '招新', '会议', '文化节'].map((item) => <button key={item} onClick={() => setType(item)} className={type === item ? 'active' : ''}>{item}</button>)}</div>
       </div>
       <div className="event-grid">
         {filtered.length ? filtered.map((event) => (
-          <a href={event.slug === 'apex-arena' ? '/events/apex-arena' : `/events#${event.slug}`} className={`event-card ${event.tone}`} id={event.slug} key={event.slug}>
-            <div className="event-visual"><span>{event.eyebrow}</span><b>{event.type === '课程' ? '&lt;/&gt;' : event.type === '比赛' ? '48H' : event.type === '招新' ? 'HELLO' : 'LIVE'}</b><i /></div>
-            <div className="event-card-body"><span className="card-kicker">{event.status === 'upcoming' ? 'UPCOMING' : 'ARCHIVE'} · {event.type}</span><h2>{event.title}</h2><p>{event.summary}</p><dl><div><dt>DATE</dt><dd>{event.date}</dd></div><div><dt>PLACE</dt><dd>{event.place}</dd></div></dl><span className="text-link">查看活动详情 →</span></div>
+          <a href={event.href ?? getEventHref(event.slug)} className={`event-card ${event.tone}`} id={event.slug} key={event.slug}>
+            <div className="event-visual"><span>{event.eyebrow}</span><b>{eventGlyphs[event.type]}</b><i /></div>
+            <div className="event-card-body"><span className="card-kicker">{event.status === 'upcoming' ? 'UPCOMING' : 'ARCHIVE'} · {event.type}</span><h2>{event.title}</h2><p>{event.summary}</p><dl><div><dt>DATE</dt><dd>{event.date}</dd></div><div><dt>PLACE</dt><dd>{event.place}</dd></div></dl><span className="text-link">{event.href?.startsWith('/events#') ? '信息待确认 · 持续更新' : '查看活动详情 →'}</span></div>
           </a>
         )) : <div className="empty-state"><span>NO SIGNAL</span><h2>这个筛选下暂时没有活动</h2><p>换一个类别，或者关注后续公开通知。</p></div>}
       </div>
@@ -47,43 +58,105 @@ const faqJoin: Array<[string, string]> = [
   ['我完全没有编程基础，可以加入吗？', '可以。InfoCo 既欢迎已经在做项目的人，也欢迎还没写过第一行代码的人。学习路径会从基础开始，真正重要的是好奇心和愿意动手。'],
   ['只能做编程相关的事情吗？', '不是。游戏与科技项目同样需要设计、写作、视觉、运营与组织能力。你可以先从感兴趣的角色进入，再逐步拓展。'],
   ['加入后需要投入多少时间？', '不同项目节奏不同。常规活动可以按兴趣参与；如果加入项目组，建议提前和团队约定稳定、可持续的投入。'],
-  ['目前没有开放招新怎么办？', '页面会长期保留。你可以关注 InfoCo 的公开渠道；下一次招新开放后，这里会第一时间更新流程和入口。'],
+  ['现在怎样了解并加入？', '9 月 2 日可以前往百团大战学术类社团区 8 号展位，与社团成员交流并了解加入方式。其他公开入口确认后会同步更新到官网。'],
 ];
 
 export function JoinFAQ() { return <FAQ items={faqJoin} />; }
 
-type NodeState = 'broken' | 'fixed';
+type SignalTile = {
+  mask: number;
+  kind: 'source' | 'server' | 'wire';
+  locked: boolean;
+};
 
-export function RepairGame() {
-  const [started, setStarted] = useState(false);
-  const [nodes, setNodes] = useState<NodeState[]>(Array(9).fill('broken'));
-  const [time, setTime] = useState(30);
-  const won = nodes.every((node) => node === 'fixed');
+type SignalLevel = {
+  id: number;
+  title: string;
+  subtitle: string;
+  timeLimit: number;
+  size: number;
+  startIndex: number;
+  targetIndex: number;
+  board: SignalTile[];
+};
 
-  function start() { setNodes(Array(9).fill('broken')); setTime(30); setStarted(true); }
+type SignalPhase = 'intro' | 'playing' | 'cleared' | 'lost' | 'complete';
+
+export function SignalRouteGame() {
+  const [levelIndex, setLevelIndex] = useState(0);
+  const [level, setLevel] = useState<SignalLevel>(() => createLevel(0, () => 0) as SignalLevel);
+  const [phase, setPhase] = useState<SignalPhase>('intro');
+  const [time, setTime] = useState(level.timeLimit);
+  const [moves, setMoves] = useState(0);
+  const [score, setScore] = useState(0);
+  const powered = useMemo(() => traceSignal(level.board, level.size, level.startIndex) as Set<number>, [level]);
 
   useEffect(() => {
-    if (!started || won || time === 0) return;
-    const timer = window.setInterval(() => setTime((current) => Math.max(0, current - 1)), 1000);
-    return () => window.clearInterval(timer);
-  }, [started, time, won]);
+    if (phase !== 'playing') return;
+    const timer = window.setTimeout(() => {
+      if (time <= 1) {
+        setTime(0);
+        setPhase('lost');
+      } else {
+        setTime(time - 1);
+      }
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [phase, time]);
 
-  function fix(index: number) {
-    if (!started || time === 0 || won) return;
-    setNodes((current) => current.map((node, i) => i === index ? 'fixed' : node));
+  function loadLevel(nextIndex: number, resetScore = false) {
+    const nextLevel = createLevel(nextIndex) as SignalLevel;
+    setLevelIndex(nextIndex);
+    setLevel(nextLevel);
+    setTime(nextLevel.timeLimit);
+    setMoves(0);
+    if (resetScore) setScore(0);
+    setPhase('playing');
   }
 
-  const score = nodes.filter((node) => node === 'fixed').length;
+  function rotate(index: number) {
+    if (phase !== 'playing') return;
+    const nextBoard = rotateCell(level.board, index) as SignalTile[];
+    if (nextBoard === level.board) return;
+    const nextMoves = moves + 1;
+    setMoves(nextMoves);
+    setLevel({ ...level, board: nextBoard });
+
+    if (hasSignal(nextBoard, level.size, level.startIndex, level.targetIndex)) {
+      setScore((current) => current + Math.max(100, 500 + time * 20 - nextMoves * 5));
+      setPhase(levelIndex === 2 ? 'complete' : 'cleared');
+    }
+  }
+
   return (
-    <div className="game-machine">
-      <div className="game-statusbar"><span>INFOCO.EXE / NORMAL MODE</span><span className={time <= 8 ? 'danger' : ''}>T− {String(time).padStart(2, '0')}s</span><span>SYSTEM {won ? '100' : Math.round(score / 9 * 100)}%</span></div>
-      <div className="game-screen">
-        {!started ? <div className="game-overlay"><span>普通体验模式 · 不发放奖品</span><h2>校园系统异常</h2><p>9 个服务节点已经离线。请在 30 秒内依次点击异常节点，让校园系统恢复运行。</p><button onClick={start}>启动维修 →</button></div> : null}
-        {started && won ? <div className="game-overlay success"><span>REPAIR COMPLETE</span><h2>全部系统已恢复</h2><p>用时 {30 - time} 秒。你修好了今天的校园网络——至少在这个宇宙里。</p><button onClick={start}>再玩一次 ↻</button></div> : null}
-        {started && time === 0 && !won ? <div className="game-overlay fail"><span>SESSION TIMEOUT</span><h2>维修未完成</h2><p>已修复 {score} / 9 个节点。系统已为你保留重试权限。</p><button onClick={start}>重新启动 ↻</button></div> : null}
-        <div className="node-grid" aria-label="系统维修节点">{nodes.map((node, index) => <button key={index} className={node} onClick={() => fix(index)} aria-label={`节点 ${index + 1}，${node === 'fixed' ? '已修复' : '待修复'}`}><span>0{index + 1}</span><b>{node === 'fixed' ? 'OK' : 'ERR'}</b><i /></button>)}</div>
+    <div className="game-machine signal-machine">
+      <div className="game-statusbar"><span>INFOCO.EXE / SIGNAL ROUTE</span><span>LEVEL {String(level.id).padStart(2, '0')} / 03</span><span className={time <= 8 && phase === 'playing' ? 'danger' : ''}>T− {String(time).padStart(2, '0')}s</span><span>SCORE {String(score).padStart(4, '0')}</span></div>
+      <div className="game-screen signal-screen">
+        <div className="route-mission"><span>{level.title}</span><strong>{level.subtitle}</strong><span>{moves} ROTATIONS</span></div>
+        <div className="signal-grid" aria-label={`信号链路第 ${level.id} 关`}>
+          {level.board.map((tile, index) => {
+            const row = Math.floor(index / level.size) + 1;
+            const column = index % level.size + 1;
+            const active = powered.has(index);
+            const label = tile.kind === 'source' ? '信号源' : tile.kind === 'server' ? '目标服务器' : '线路模块';
+            return (
+              <button type="button" key={index} className={`${tile.kind} ${active ? 'powered' : ''}`} disabled={phase !== 'playing' || tile.locked} onClick={() => rotate(index)} aria-label={`${label}，第 ${row} 行第 ${column} 列${tile.locked ? '，固定' : '，点击顺时针旋转'}`}>
+                {tile.mask & DIRECTIONS.north ? <i className="wire-arm north" /> : null}
+                {tile.mask & DIRECTIONS.east ? <i className="wire-arm east" /> : null}
+                {tile.mask & DIRECTIONS.south ? <i className="wire-arm south" /> : null}
+                {tile.mask & DIRECTIONS.west ? <i className="wire-arm west" /> : null}
+                <b>{tile.kind === 'source' ? 'TX' : tile.kind === 'server' ? 'RX' : ''}</b>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+              </button>
+            );
+          })}
+        </div>
+        {phase === 'intro' ? <div className="game-overlay"><span>普通体验模式 · 三段链路挑战</span><h2>信号路径已中断</h2><p>旋转线路模块，让数据包从 TX 信号源抵达 RX 服务器。三关难度逐步提升，每一步都会影响最终得分。</p><button onClick={() => loadLevel(0, true)}>接入系统 →</button></div> : null}
+        {phase === 'cleared' ? <div className="game-overlay success" aria-live="polite"><span>UPLINK STABLE</span><h2>第 {level.id} 段链路恢复</h2><p>剩余 {time} 秒，使用 {moves} 次旋转。下一段线路包含更多干扰节点。</p><button onClick={() => loadLevel(levelIndex + 1)}>进入下一段 →</button></div> : null}
+        {phase === 'lost' ? <div className="game-overlay fail" aria-live="polite"><span>CONNECTION TIMEOUT</span><h2>数据包未能送达</h2><p>当前完成 {moves} 次旋转。线路布局仍然有解，可以立即重新尝试这一关。</p><button onClick={() => loadLevel(levelIndex)}>重新路由 ↻</button></div> : null}
+        {phase === 'complete' ? <div className="game-overlay success" aria-live="polite"><span>ALL SYSTEMS ONLINE</span><h2>校园链路全部恢复</h2><p>最终得分 {score}。你让三个数据包安全抵达了目标服务器。</p><button onClick={() => loadLevel(0, true)}>再次挑战 ↻</button></div> : null}
       </div>
-      <div className="game-footer"><span>INPUT: POINTER / TOUCH</span><span>NETWORK: NOT REQUIRED</span><span>PRIZE CODE: DISABLED</span></div>
+      <div className="game-footer"><span>INPUT: POINTER / TOUCH / KEYBOARD</span><span>NETWORK: NOT REQUIRED</span><span>PRIZE CODE: DISABLED</span></div>
     </div>
   );
 }
