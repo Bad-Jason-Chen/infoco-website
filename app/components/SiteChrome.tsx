@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+/* eslint-disable @next/next/no-html-link-for-pages -- Full-page navigation avoids Vinext client-router click failures. */
+
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
@@ -15,10 +16,10 @@ export const navItems = [
 
 export function Logo() {
   return (
-    <Link className="brand" href="/" aria-label="InfoCo 首页">
+    <a className="brand" href="/" aria-label="InfoCo 首页">
       <span className="brand-mark" aria-hidden="true"><i /><i /><i /><i /></span>
       <span>InfoCo</span>
-    </Link>
+    </a>
   );
 }
 
@@ -33,16 +34,16 @@ export function SiteHeader() {
       <nav className="desktop-nav" aria-label="主导航">
         {navItems.map(([cn, en, href]) => {
           const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
-          return <Link href={href} key={href} className={active ? 'active' : ''}><span>{cn}</span><small>{en}</small></Link>;
+          return <a href={href} key={href} className={active ? 'active' : ''}><span>{cn}</span><small>{en}</small></a>;
         })}
       </nav>
-      <Link className="header-join" href="/join">JOIN <span aria-hidden="true">↗</span></Link>
+      <a className="header-join" href="/join">JOIN <span aria-hidden="true">↗</span></a>
       <button className={`menu-toggle ${open ? 'open' : ''}`} onClick={() => setOpenPath(open ? null : pathname)} aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? '关闭菜单' : '打开菜单'}>
         <span /><span />
       </button>
       <nav id="mobile-nav" className={`mobile-nav ${open ? 'open' : ''}`} aria-label="移动端主导航">
         {navItems.map(([cn, en, href], index) => (
-          <Link href={href} key={href} onClick={() => setOpenPath(null)}><b>0{index + 1}</b><span>{cn}<small>{en}</small></span><i>↗</i></Link>
+          <a href={href} key={href}><b>0{index + 1}</b><span>{cn}<small>{en}</small></span><i>↗</i></a>
         ))}
       </nav>
     </header>
@@ -55,7 +56,7 @@ export function SiteFooter() {
       <div className="footer-main">
         <div><Logo /><p>把好奇心编译成作品。</p></div>
         <div className="footer-nav">
-          {navItems.slice(1).map(([cn, , href]) => <Link href={href} key={href}>{cn}</Link>)}
+          {navItems.slice(1).map(([cn, , href]) => <a href={href} key={href}>{cn}</a>)}
         </div>
         <div className="footer-contact">
           <span>PUBLIC CHANNEL</span>
